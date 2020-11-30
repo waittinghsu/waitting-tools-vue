@@ -10,33 +10,22 @@
   "dependencies": {
     "@vue/cli-plugin-babel": "4.1.1",
     "element-ui": "2.14.1",
-    "node-sass": "5.0.0",
-    "sass": "1.28.0",
-    "sass-loader": "10.1.0",
     "vue": "^2.6.11",
-    "vuetify": "2.3.19"
+    "vuetify": "2.3.19",
+    "vuex": "^3.6.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-eslint": "4.1.1",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.1",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "@vue/cli-plugin-eslint": "3.9.2",
     "@vue/cli-service": "4.1.1",
-    "babel-eslint": "^10.0.3",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.0.1",
-    "vue-template-compiler": "^2.6.11"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "rules": {},
-    "parserOptions": {
-      "parser": "babel-eslint"
-    }
+    "babel-eslint": "^10.0.1",
+    "eslint": "7.0.0",
+    "eslint-plugin-vue": "^7.0.0",
+    "vue-template-compiler": "^2.6.10",
+    "node-sass": "5.0.0",
+    "sass": "1.28.0",
+    "sass-loader": "10.1.0"
   },
   "postcss": {
     "plugins": {
