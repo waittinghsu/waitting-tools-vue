@@ -1,0 +1,14 @@
+@each $name, $size in $font-size {
+  .font{
+    &-#{$name}{ font-size: $size !important };
+  }
+}
+
+@each $name, $weight in $font-weights {
+  .font-weight{
+    &-#{$name}{ font-weight: $weight !important };
+  }
+}
+
+
+

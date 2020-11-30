@@ -1,0 +1,162 @@
+// cover some element-ui styles
+
+.el-breadcrumb__inner,
+.el-breadcrumb__inner a {
+  font-weight: 400 !important;
+}
+
+.el-upload {
+  input[type='file'] {
+    display: none !important;
+  }
+}
+
+.el-upload__input {
+  display: none;
+}
+
+// to fixed https://github.com/ElemeFE/element/issues/2461
+.el-dialog {
+  transform: none;
+  left: 0;
+  position: relative;
+  margin: 0 auto;
+  &__header {
+    .el-dialog__headerbtn .el-dialog__close {
+      color: white;
+    }
+  }
+}
+
+
+  // refine element ui upload
+.upload-container {
+  .el-upload {
+    width: 100%;
+
+    .el-upload-dragger {
+      width: 100%;
+      height: 200px;
+    }
+  }
+}
+
+// dropdown
+.el-dropdown-menu {
+  a {
+    display: block;
+  }
+}
+
+// to fix el-date-picker css style
+.el-range-separator {
+  box-sizing: content-box;
+}
+
+// dialog
+.dialog-add-edit {
+  .el-dialog__header {
+    background-color: $dialog-header-bg;
+    text-align: center;
+    .el-dialog__title {
+      color: $dialog-header-text;
+    }
+  }
+}
+
+// message
+.message-delete {
+  border: 0;
+  .el-message-box__header {
+    background-color: $message-delete-header-bg;
+    .el-message-box__title {
+      color: $message-delete-header-text;
+    }
+  }
+}
+
+// note
+.message-note {
+  border: 0;
+  .el-message-box__header {
+    background-color: $dialog-header-bg;
+    padding-top: 15px;
+    .el-message-box__title {
+      color: $message-delete-header-text;
+    }
+  }
+}
+
+.el-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.el-form {
+  .el-form--doubleline {
+    .el-form-item__label::before {
+      content: '';
+      height: 40px;
+      display: block;
+    }
+    .flex-form-item-container {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+// tabs
+.el-tabs {
+  margin: 20px;
+}
+
+// form item
+.el-form-item__content {
+  line-height: initial;
+}
+
+// table
+.el-table th.gutter{
+    display: table-cell!important;
+}
+
+.el-table colgroup.gutter{
+    display: table-cell!important;
+}
+//
+.form-item-label-container {
+  font-size: 12px;
+  height: 40px;
+  label {
+    font-size: 14px;
+  }
+}
+
+/**
+ * 附加成功樣式的對話誆顏色 須在 el-form-item 多加 success-border
+ */
+.el-form-item.is-success.success-border .el-input__inner,
+.el-form-item.is-success.success-border .el-input__inner:focus,
+.el-form-item.is-success.success-border .el-textarea__inner,
+.el-form-item.is-success.success-border .el-textarea__inner:focus,
+.el-message-box__input input.invalid,
+.el-message-box__input input.invalid:focus {
+  border-color: #32ccbc;
+}
+
+.el-form-content-w-100 {
+  .el-form-item {
+    width: 100%;
+    .el-form-item {
+      &__content {
+        width: 100%;
+      }
+      &__label {
+        text-align: left;
+        float: none;
+      }
+    }
+  }
+}

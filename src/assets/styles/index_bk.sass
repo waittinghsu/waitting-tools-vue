@@ -1,0 +1,134 @@
+@import 'settings/variables'
+@import 'settings/customer'
+@import 'settings/tools/utilities'
+@import 'settings/utilities'
+@import 'elements/transition'
+@import 'elements/element-ui'
+@import 'elements/sidebar'
+@import 'settings/typography'
+@import 'elements/report'
+@import 'elements/cards'
+
+body
+  height: 100%
+  -moz-osx-font-smoothing: grayscale
+  -webkit-font-smoothing: antialiased
+  text-rendering: optimizeLegibility
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif
+
+
+label
+  font-weight: 700
+
+
+html
+  height: 100%
+  box-sizing: border-box
+
+
+#app
+  height: 100%
+
+
+*,
+*:before,
+*:after
+  box-sizing: inherit
+
+
+a:focus,
+a:active
+  outline: none
+
+
+a,
+a:focus,
+a:hover
+  cursor: pointer
+  color: inherit
+  text-decoration: none
+
+
+div:focus
+  outline: none
+
+
+.clearfix
+  &:after
+    visibility: hidden
+    display: block
+    font-size: 0
+    content: ' '
+    clear: both
+    height: 0
+
+
+
+// main-container global css
+.app-container
+  padding: 20px
+
+.pagination-wrap
+  text-align: center
+
+
+$value1: none capitalize lowercase uppercase
+$value2: text
+$value3: (property: cursor, class: cursor, values: pointer)
+@each $dir in $value3
+  $mixin: nth($dir, 1)
+  //@debug $dir
+//@debug type-of($value1), type-of($value2), type-of($value3)
+
+@each $key, $utility in $utilities
+  // The utility can be disabled with `false`, thus check if the utility is a map first
+  // Then check if the utility needs print styles
+  //@debug $key, type-of($utility) == "map", type-of($utility), $utility
+  @if type-of($utility) == "map"
+    +generate-utility($utility, "")
+
+// Put the loop in a function so it can't leak
+@each $color_name, $color_value in $shades
+  #app .#{$color_name}--bg
+    @include background-color($color_value)
+
+  #app .#{$color_name}--text
+    @include text-color($color_value)
+
+// set second color style
+@each $color_name, $color_color in $colors
+  @each $color_type, $color_value in $color_color
+    @if ($color_type=="base")
+      #app .#{$color_name}--bg
+        @include background-color($color_value)
+
+      #app .#{$color_name}--text
+        @include text-color($color_value)
+
+    @else if ($color_type !="shades")
+      #app .#{$color_name}--bg.#{$color_type}
+        @include background-color($color_value)
+
+      #app .#{$color_name}--text.text--#{$color_type}
+        @include text-color($color_value)
+
+// Loop over each utility property
+@each $spacingKey, $spacingItem in $spacings
+  // The utility can be disabled with `false`, thus check if the utility is a map first
+  @if type_of(map-get($spacingItem, values)) == "map"
+    @each $valueKey, $value in map-get($spacingItem, values)
+      @if type_of(map-get($spacingItem, property)) == "string"
+        .#{map-get($spacingItem, class)}-#{$valueKey}
+          #{map-get($spacingItem, property)}: #{$value}
+
+      @else if type_of(map-get($spacingItem, property)) == "map"
+        .#{map-get($spacingItem, class)}-#{$valueKey}
+          content: #{map-get($spacingItem, class)}-#{$valueKey}
+          @each $propertyKey, $propertyValue in map-get($spacingItem, property)
+            #{$propertyValue}: #{$value}
+
+      @else if type_of(map-get($spacingItem, property)) == "list"
+        .#{map-get($spacingItem, class)}-#{$valueKey}
+          content: #{map-get($spacingItem, class)}-#{$valueKey}
+          @each $propertyValue in map-get($spacingItem, property)
+            #{$propertyValue}: #{$value}
