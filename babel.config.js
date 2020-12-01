@@ -1,21 +1,13 @@
 module.exports = {
-  plugins: [
-    '@babel/plugin-proposal-optional-chaining',
-    'v',
-    [
-      'component',
-      {
-        libraryName: 'element-ui',
-        styleLibraryName: 'theme-chalk',
-      },
-    ],
-  ],
+  plugins: ['lodash', '@babel/plugin-proposal-optional-chaining', '@babel/plugin-proposal-nullish-coalescing-operator'],
   presets: [
     [
       '@vue/app',
       {
         useBuiltIns: 'entry',
       },
+      '@vue/babel-preset-jsx',
     ],
   ],
 };
+

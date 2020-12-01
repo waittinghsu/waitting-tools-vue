@@ -65,7 +65,7 @@ module.exports = {
   },
   chainWebpack: config => {
     console.log(`\n**** NODE_ENV :${process.env.NODE_ENV} : *****`);
-    config.name(defaultSettings.title || '大懶發');
+    config.name(defaultSettings.title || 'GGTing');
     config.resolve.alias.set('@', resolve('src'));
 
     config.plugins.delete('preload'); // TODO: need test
@@ -75,17 +75,17 @@ module.exports = {
       .rule('svg')
       .exclude.add(resolve('src/icons'))
       .end();
-    config.module
-      .rule('icons')
-      .test(/\.svg$/)
-      .include.add(resolve('src/icons'))
-      .end()
-      .use('svg-sprite-loader')
-      .loader('svg-sprite-loader')
-      .options({
-        symbolId: 'icon-[name]',
-      })
-      .end();
+    // config.module
+    //   .rule('icons')
+    //   .test(/\.svg$/)
+    //   .include.add(resolve('src/icons'))
+    //   .end()
+    //   .use('svg-sprite-loader')
+    //   .loader('svg-sprite-loader')
+    //   .options({
+    //     symbolId: 'icon-[name]',
+    //   })
+    //   .end();
     // set preserveWhitespace
     config.module
       .rule('vue')
@@ -104,12 +104,10 @@ module.exports = {
     // bundle 檢測  透過env開關 dev環境不預設開啟
     config.when(process.env.VUE_CLI_WEB_BUNDLE_ANALYZER === 'true', config => {
       const webpackBundleAnalyzer = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-      config.plugin('webpackBundleAnalyzer').use(
-        new webpackBundleAnalyzer({
-          openAnalyzer: true,
-          analyzerPort: '7788',
-        }),
-      );
+      config.plugin('webpackBundleAnalyzer').use(new webpackBundleAnalyzer({
+        openAnalyzer: true,
+        analyzerPort: '7788',
+      }));
     });
 
     config.when(process.env.NODE_ENV !== 'development', config => {
@@ -150,12 +148,10 @@ module.exports = {
     });
 
     // 減少lodash的bundle size
-    config.plugin('lodash-replace').use(
-      new LodashModuleReplacementPlugin({
-        collections: true,
-        paths: true,
-      }),
-    );
+    config.plugin('lodash-replace').use(new LodashModuleReplacementPlugin({
+      collections: true,
+      paths: true,
+    }));
     config.plugin('gitRevision').use(gitRevisionPlugin);
 
     config.optimization.minimizer('terser').tap(args => {
