@@ -28,6 +28,7 @@ module.exports = {
    */
 
   rules: {
+
     /**
      *
      * 邏輯錯誤及最佳實踐的規則
@@ -228,13 +229,13 @@ module.exports = {
 
     'array-bracket-spacing': 2, // 強制在括號內前後使用空格
 
-    'array-element-newline': [2, { multiline: true }], // ??? 強制數組元素間出現換行
+    'array-element-newline': [2, { multiline: true, "minItems": 3 }], // ??? 強制數組元素間出現換行
 
     'block-spacing': 2, // 強制在代碼塊中開括號前和閉括號後有空格
 
     'brace-style': 2, // 大括號風格要求
 
-    camelcase: 2, // 要求使用駱駝拼寫法
+    camelcase: 1, // 要求使用駱駝拼寫法
 
     'comma-dangle': [2, 'always-multiline'], // 要求或禁止使用拖尾逗號
 
@@ -250,13 +251,13 @@ module.exports = {
 
     'func-call-spacing': 2, // 要求或禁止在函數標識符和其調用之間有空格
 
-    'func-style': [2, 'declaration'], // ??? 強制 function 聲明或表達式的一致性
+    'func-style': [1, 'declaration'], // ??? 強制 function 聲明或表達式的一致性
 
     'function-paren-newline': [1, 'multiline'], // 強制在函數括號內使用一致的換行
 
     indent: [2, 2], // 強制使用一致的縮進
 
-    'jsx-quotes': 2, // 強制在 JSX 屬性中一致地使用雙引號或單引號
+    // 'jsx-quotes': 2, // 強制在 JSX 屬性中一致地使用雙引號或單引號
 
     'key-spacing': 2, // 強制在對象字面量的鍵和值之間使用一致的空格
 
@@ -430,7 +431,10 @@ module.exports = {
       {
         ignoreCase: true,
         ignoreMemberSort: true,
-        memberSyntaxSortOrder: ['all', 'single', 'multiple', 'none'],
+        memberSyntaxSortOrder: ['all',
+          'single',
+          'multiple',
+          'none'],
       },
     ],
 
@@ -440,9 +444,11 @@ module.exports = {
      *
      */
     'vue/no-unused-components': 0,
-    'vue/max-attributes-per-line': [2, {
-      'singleline': 6,
-      'multiline': { max: 6 }
-    }],
+    'vue/custom-event-name-casing': 0,
+    'vue/max-attributes-per-line': [2,
+      {
+        'singleline': 6,
+        'multiline': { max: 6 },
+      }],
   },
 };
