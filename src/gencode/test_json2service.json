@@ -1,0 +1,6 @@
+{
+  "url": "yapi-swagger.json",
+  "remoteUrl": "http://localhost:40001/api/open/plugin/export-full?type=json&pid=11&status=all&token=97aa3627b0bb1f4f4980ad2b36a99439fa280fab3028873ec260f1dd91c934b1",
+  "type": "yapi",
+  "swaggerParser": {}
+}
