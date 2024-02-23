@@ -92,7 +92,7 @@ export default {
     },
     getItems() {
       let output = [];
-      if(Object.prototype.toString.call(this.items) === '[object Function]') {
+      if (Object.prototype.toString.call(this.items) === '[object Function]') {
         output = [...this.items()];
       } else {
         output = [...this.items];
@@ -100,6 +100,34 @@ export default {
       return output;
     },
     optionsFilter() {
+      let items = this.getItems;
+      // 自定義過濾器
+      if (Object.prototype.toString.call(this.filterFuc) === '[object Function]') {
+        items = this.filterFuc({ items: this.getItems });
+      }
+      
+     
+      // 例外判斷 如果 items 內容物 非Object 則自動轉型 成 object 格式 ex: { id: value, name: value }
+      const [first] = items;
+      if (Object.prototype.toString.call(first) !== '[object Object]') {
+         items = [...new Set(items)].filter(Boolean).map((value) => ({ id: value, name: value }));
+      }
+      
+      // options 為 object 做基本過濾
+      let options uniqBy(items, thisvalueKey);
+      const textErrorKey = `option key 有重複 : ${this.$attrs.placeholder || ''}`;
+      const textDifference = `(原數量:${this.getItems().length} 過濾後${options.length})`;
+      // options 為 object 座可限制清除 label 為空的選項
+      if (this.clearEmptyLabel) {
+        options = options.filter((obj) => obj[this.labelKey]);
+      }
+      
+      // 調整排序 - 當有選取狀態時 將選取值提升至第一
+      if(this.value) {
+        const findIndex = options.findIndex((item) => item[this.valueKey] === this.value);
+        const [findItem] = options.splice(findIndex, 1);
+        options.unshift(findItem);
+      }
       
     }
   },
@@ -109,6 +137,44 @@ export default {
       // elementui下拉超过7条才会出滚动条,如果初始不出滚动条无法触发loadMore方法
       return () => (this.rangeNumber += 5); // 每次滚动到底部可以新增条数  可自定义
     },
-  }
+    change(val) {
+      
+    },
+    handleFilterMethod: pureDebounce(function callback(filterText) {
+      if(filterText) {
+        const filterResult = this.optionsFilter.filter((item) => `${item[this.labelKey]}`.toLowerCase().includes(filterText.toLowCase()));
+        this.options = [];
+        filterResult.length > 0 && this.options.push(...filterResult);
+        this.modelValue = filterText;
+      } else {
+        this.options = this.optionsFilter
+      }
+    }, 500),
+    /**
+     * 下拉框觸發事件
+     * @param flag true: '展開'下拉options
+     * @param flag false: '收起'下拉options
+     */
+    handleVisbleChange(flag) {
+      this.options = this.optionsFilter;
+      if(flag) {
+        this.tempValue = this.value; // 開啟先暫存目前的select option
+        this.handleFilterMethod();
+      } else {
+        /**
+         * 檢查目前的value 是否存在 items 裡面
+         * @type {Boolean} true: 表示目前的值選中狀態 false: 表示現在欄位為filter狀態
+         */
+        const isExist = this.optionFilter.find((item) => item[this.valueKey] === this.value);
+        if(!isExist) {
+          // 回復先前搜尋狀態
+          this.modelValue = this.tempValue;
+        }
+        // 關閉下拉選單 清除暫時存檔
+        this.tempValue = undefined;
+        this.handleFilterMethod();
+      }
+    },
+  },
 };
 </script>
