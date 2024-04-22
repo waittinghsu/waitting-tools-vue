@@ -166,3 +166,15 @@ export function getRandomPassword(val) {
   }
   return randomPassword;
 }
+
+export function pureDebounce(fn, delay = 1000) {
+  let timer = null;
+  function closure(...args) {
+    const context = this;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      fn.apply(context, args);
+    }, delay);
+  }
+  return closure;
+}
