@@ -5,8 +5,10 @@
     v-select-load-more="loadMore(rangeNumber)"
     :value="value"
     :filter-method="handleFilterMethod"
+    :multiple="multiple"
     @visible-change="handleVisibleChange"
-    @input="change($event)"
+    @input="handleInput($event)"
+    @change="handleChange($event)"
     @clear="$emit('clear')"
   >
     <slot name="prepend-item" />
@@ -21,6 +23,7 @@
 
 <script>
 import { uniqBy } from 'lodash';
+// import { pureDebounce } from '@/utils';
 function pureDebounce(fn, delay = 1000) {
   let timer = null;
   function closure(...args) {
@@ -32,7 +35,6 @@ function pureDebounce(fn, delay = 1000) {
   }
   return closure;
 }
-
 export default {
   name: 'SaInfinitySelect',
   directives: {
@@ -93,6 +95,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    multiple: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -110,6 +116,10 @@ export default {
         this.$emit('input', newVal);
       },
     },
+    isMultiple() {
+      return Object.prototype.toString.call(this.modelValue) === '[object Array]';
+    },
+    // items 本身是function 的話 就執行並解構
     getItems() {
       let output = [];
       if (Object.prototype.toString.call(this.items) === '[object Function]') {
@@ -119,6 +129,15 @@ export default {
       }
       return output;
     },
+    /**
+     * 重組過濾選單列表
+     * 1. 如果 filterFunc 有定義 直接執行 filterFunc()
+     * 2. 判斷來源 items  是 string[] or object[]
+     *   a. string[] 去重複選項 並且轉換成 object[]
+     *   b  object[] 資料去重複
+     * 3. clearEmptyLabel 可以將顯示名稱為空的移除
+     * @returns {object[]}
+     */
     optionsFilter() {
       let items = this.getItems;
 
@@ -127,7 +146,6 @@ export default {
         items = this.filterFunc({ items: this.getItems });
       }
 
-      // const items = this.getItems;
       // 例外判斷 如果 items 內容物 非Object 則自動轉型 成 object 格式 ex: { id: value, name: value }
       const [first] = items;
       if (Object.prototype.toString.call(first) !== '[object Object]') {
@@ -144,36 +162,73 @@ export default {
         options = options.filter((obj) => obj[this.labelKey]);
       }
 
+      // const optionDictionary = options.reduce((acc, obj) => ({ ...acc, [obj[this.valueKey]]: obj }), {});
+      /**
+       *
+       * @param {array} arr
+       * @param {number|String|Array} target 要移動的目標
+       * @returns {*}
+       */
+      function moveItemToTop(arr, target) {
+        if (Object.prototype.toString.call(target) === '[object Array]') {
+          const targetSet = new Set(target);
+          return arr.reduce((acc, item) => ((targetSet.has(item.id)) ? [item, ...acc] : [...acc, item]), []);
+        }
+        return arr.reduce((acc, item) => ((item.id === target) ? [item, ...acc] : [...acc, item]), []);
+      }
+
       // *調整排序 － 當有選取狀態(value)時 將選取的項目提取到第一位
       if (this.value) {
-        const findIndex = options.findIndex((item) => item[this.valueKey] === this.value);
-        const [findItem] = options.splice(findIndex, 1);
-        options.unshift(findItem);
+        options = moveItemToTop(options, this.value);
       }
 
       return options;
     },
-
+  },
+  watch: {
+    value: {
+      handler() {
+        console.log('watch');
+        // 選項異動時 更新下拉選單排序
+        Object.prototype.toString.call(this.modelValue) === '[object String]' ? this.handleFilterMethod(this.modelValue) : this.handleFilterMethod();
+      },
+      immediate: true,
+    },
   },
   methods: {
+    /**
+     * directives 綁定監聽事件 addEventListener('scroll')  當某條件成立 會出發 loadMore
+     * @param n
+     * @returns {function(): number}
+     */
     loadMore(n) {
       // n是默认初始展示的条数会在渲染的时候就可以获取,具体可以打log查看
       // element-ui下拉超过7条才会出滚动条,如果初始不出滚动条无法触发loadMore方法
       return () => (this.rangeNumber += 5); // 每次滚动到底部可以新增条数  可自定义
     },
-    change(val) {
-      this.$emit('input', val, this.$refs.saSelect);
-    },
     handleFilterMethod: pureDebounce(function callBack(filterText) {
+      console.log('handleFilterMethod');
+      function filterMethod(item, labelKey, filterText) {
+        return `${item[labelKey]}`.toLowerCase().includes(filterText.toLowerCase());
+      }
       if (filterText) {
-        const filterResult = this.optionsFilter.filter((item) => `${item[this.labelKey]}`.toLowerCase().includes(filterText.toLowerCase()));
+        const filterResult = this.optionsFilter.filter((item) => filterMethod(item, this.labelKey, filterText));
         this.options = [];
-        filterResult.length > 0 && this.options.push(...filterResult);
-        this.modelValue = filterText;
+        // 是否有搜寻到相符资料
+        const hasFilter = filterResult.length > 0;
+        hasFilter && this.options.push(...filterResult);
+        // 多選的時候更新選項列表 必須找到已被選的選項 丟在後排
+        if (this.isMultiple && hasFilter) {
+          const currentSelected = this.optionsFilter.slice(0, this.modelValue.length) // 被選的選項
+            .filter((item) => !filterMethod(item, this.labelKey, filterText)); // 不可以在 filterResult 裏面
+          this.options.push(...currentSelected);
+        }
+        // 「單筆」下拉 正常顯示搜索文字, 將搜索文字覆蓋在 modelValue
+        this.isMultiple || (this.modelValue = filterText);
       } else {
         this.options = this.optionsFilter;
       }
-    }, 500),
+    }, 100),
     /**
      * 下拉匡觸發事件
      * @param flag true:  ”展開“下拉options
@@ -182,24 +237,31 @@ export default {
     handleVisibleChange(flag) {
       this.options = this.optionsFilter;
       if (flag) {
+        this.rangeNumber = 10;
         this.tempValue = this.value; // 開啟時先暫存目前的 select value
         this.handleFilterMethod();
       } else {
-        /**
-         * 檢查不前的value 是否存在 items 裏面
-         * @type {Boolean} true: 表示目前的值選中狀態 false: 表示現在欄位為filter狀態
-         */
-        const isExist = this.optionsFilter.find((item) => item[this.valueKey] === this.value);
-        if (!isExist) {
-          // 回復搜尋前的狀態 並刷新下拉表單
-          this.modelValue = this.tempValue;
+        // 「單選」時 才回復搜尋前的狀態 並刷新下拉表單
+        if (!this.isMultiple) {
+          /**
+           * 檢查目前的value 是否存在 items 裏面
+           * @type {Boolean} true: 表示目前的值選中狀態 false: 表示現在欄位為filter狀態
+           */
+          const isExist = this.optionsFilter.find((item) => item[this.valueKey] === this.value);
+          isExist || (this.modelValue = this.tempValue);
         }
         // 關閉下拉選單 清除暫存  將下拉填回全部選項
         this.tempValue = undefined;
-        this.handleFilterMethod();
-        // console.log(this.tempValue);
+        // this.handleFilterMethod();
       }
+    },
+    handleInput(val) {
+      this.$emit('input', val, this.$refs.saSelect);
+    },
+    handleChange(val) {
+      this.$emit('change', val, this.$refs.saSelect);
     },
   },
 };
 </script>
+
