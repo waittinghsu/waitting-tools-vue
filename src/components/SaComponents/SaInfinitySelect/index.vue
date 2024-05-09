@@ -100,6 +100,7 @@ export default {
       rangeNumber: 10,
       tempValue: undefined,
       options: [],
+      isFilter: false,
     };
   },
   computed: {
@@ -111,10 +112,10 @@ export default {
         this.$emit('input', newVal);
       },
     },
-    isMultiple() {
-      return Object.prototype.toString.call(this.modelValue) === '[object Array]';
-    },
-    // items 本身是function 的話 就執行並解構
+    /**
+     * items 本身是function 的話 就執行並解構
+     * @returns {*[]}
+     */
     getItems() {
       let output = [];
       if (Object.prototype.toString.call(this.items) === '[object Function]') {
@@ -122,7 +123,6 @@ export default {
       } else {
         output = [...this.items];
       }
-      console.log('output', output);
       return output;
     },
     /**
@@ -135,30 +135,35 @@ export default {
      * @returns {object[]}
      */
     optionsFilter() {
-      let items = this.getItems;
+      let options = [];
       // =========================== 自定義過濾器 方法 ===========================
-      if (Object.prototype.toString.call(this.filterFunc) === '[object Function]') {
-        items = this.filterFunc({ items: this.getItems });
-      }
-      // =========================== 判斷 items內容物 string[] 則自動轉型 成 object[] 格式 ex: { id: key, name: value }
+      const items = Object.prototype.toString.call(this.filterFunc) === '[object Function]' ? this.filterFunc({ items: this.getItems }) : this.getItems;
+      // =========================== 建立 options 去重複 ===========================
       const [first] = items;
       if (Object.prototype.toString.call(first) !== '[object Object]') {
-        items = [...new Set(items)].filter(Boolean).map((value) => ({ id: value, name: value }));
+        /**
+         * 判斷 items內容物 string[] or number[]
+         * 則自動轉型 成 object[] 格式 ex: { id: key, name: value }
+         */
+        options = [...new Set(items)].filter(Boolean).map((value) => ({ id: value, name: value }));
+      } else {
+        // =========================== options 為 Object做基本的過濾重複值 ===========================
+        options = uniqBy(items, this.valueKey);
       }
-      // options 為 Object做基本的過濾重複值
-      let options = uniqBy(items, this.valueKey);
+      // =========================== 去重警告提示 ===========================
       const textErrorKey = `option key有重值 ：${this.$attrs.placeholder || ''}`;
-      const textDifference = `（原數量:${this.getItems.length} 過濾後：${options.length}）`;
+      const textDifference = `（原數量:${items.length} 過濾後：${options.length}）`;
+      // eslint-disable-next-line no-console
       options.length !== items.length && (console.warn(`SA Select Component ${textErrorKey} ${textDifference}`));
-      // options 為 Object 做可限制清除 label 為空的選項
+      // =========================== options 為 Object 做可限制清除 label 為空的選項 ===========================
       if (this.clearEmptyLabel) {
         options = options.filter((obj) => obj[this.labelKey]);
       }
       /**
-       *
+       * 因为懒载入关系, 被选择的选项可能还未建立dom，透过方法把被选的项目往上提升
        * @param {array} arr
        * @param {number|String|Array} target 要移動的目標
-       * @returns {*}
+       * @returns {object[]}
        */
       function moveItemToTop(arr, target) {
         if (Object.prototype.toString.call(target) === '[object Array]') {
@@ -167,9 +172,9 @@ export default {
         }
         return arr.reduce((acc, item) => ((item.id === target) ? [item, ...acc] : [...acc, item]), []);
       }
-      // *調整排序 － 當有選取狀態(value)時 將選取的項目提取到第一位
-      if (this.value) {
-        options = moveItemToTop(options, this.value);
+      // =========================== 調整排序 － 當有選取狀態(value)時 將選取的項目提取到第一位 ===========================
+      if ((!this.multiple && this.modelValue) || (this.multiple && this.modelValue.length > 0)) {
+        options = moveItemToTop(options, this.modelValue);
       }
       return options;
     },
@@ -177,15 +182,15 @@ export default {
   watch: {
     value: {
       handler(n) {
-        // 選項異動時 更新下拉選單排序
-        Object.prototype.toString.call(this.modelValue) === '[object String]' ? this.handleFilterMethod(this.modelValue) : this.handleFilterMethod();
+        // 非 multiple 且 未開啟搜尋的狀況下 modelValue 有預設值 更新下拉選單
+        !this.multiple && !this.isFilter && this.handleFilterMethod();
       },
       immediate: true,
     },
     items: {
-      handler(n) {
-        console.log('items', n);
-        Object.prototype.toString.call(this.modelValue) === '[object String]' ? this.handleFilterMethod(this.modelValue) : this.handleFilterMethod();
+      handler() {
+        // 選項來源異動時 更新選項
+        this.handleFilterMethod();
       },
       immediate: true,
     },
@@ -202,24 +207,24 @@ export default {
       return () => (this.rangeNumber += 5); // 每次滚动到底部可以新增条数  可自定义
     },
     handleFilterMethod: pureDebounce(function callBack(filterText) {
-      console.log('filterText', filterText);
-      function filterMethod(item, labelKey, filterText) {
-        return `${item[labelKey]}`.toLowerCase().includes(filterText.toLowerCase());
+      // 文字搜索方法
+      function filterMethod(mapperText = '', filterText = '') {
+        return `${mapperText}`.toLowerCase().includes(`${filterText}`.toLowerCase());
       }
       if (filterText) {
-        const filterResult = this.optionsFilter.filter((item) => filterMethod(item, this.labelKey, filterText));
+        const filterResult = this.optionsFilter.filter((item) => filterMethod(item[this.labelKey], filterText));
         this.options = [];
         // 是否有搜寻到相符资料
         const hasFilter = filterResult.length > 0;
         hasFilter && this.options.push(...filterResult);
         // 多選的時候更新選項列表 必須找到已被選的選項 丟在後排
-        if (this.isMultiple && hasFilter) {
+        if (this.multiple && hasFilter) {
           const currentSelected = this.optionsFilter.slice(0, this.modelValue.length) // 被選的選項
-            .filter((item) => !filterMethod(item, this.labelKey, filterText)); // 不可以在 filterResult 裏面
+            .filter((item) => !filterMethod(item[this.labelKey], filterText)); // 不可以在 filterResult 裏面
           this.options.push(...currentSelected);
         }
         // 「單筆」下拉 正常顯示搜索文字, 將搜索文字覆蓋在 modelValue
-        this.isMultiple || (this.modelValue = filterText);
+        !this.multiple && (this.modelValue = filterText);
       } else {
         this.options = this.optionsFilter;
       }
@@ -230,7 +235,7 @@ export default {
      * @param flag false: “收起”下拉options
      */
     handleVisibleChange(flag) {
-      console.log('handleVisibleChange');
+      this.isFilter = flag;
       this.options = this.optionsFilter;
       if (flag) {
         this.rangeNumber = 10;
@@ -238,7 +243,7 @@ export default {
         this.handleFilterMethod();
       } else {
         // 「單選」時 才回復搜尋前的狀態 並刷新下拉表單
-        if (!this.isMultiple) {
+        if (!this.multiple) {
           /**
            * 檢查目前的value 是否存在 items 裏面
            * @type {Boolean} true: 表示目前的值選中狀態 false: 表示現在欄位為filter狀態
@@ -248,7 +253,7 @@ export default {
         }
         // 關閉下拉選單 清除暫存  將下拉填回全部選項
         this.tempValue = undefined;
-        // this.handleFilterMethod();
+        // this.options = this.optionsFilter;
       }
     },
     handleInput(val) {
