@@ -114,14 +114,41 @@ export default {
         return [];
       },
     },
-    renderContent: Function,
-    placeholder: String,
-    title: String,
+    renderContent: {
+      type: Function,
+      default: undefined,
+    },
+    placeholder: {
+      type: String,
+      default: '',
+    },
+    title: {
+      type: String,
+      default: '',
+    },
     filterable: Boolean,
-    format: Object,
-    filterMethod: Function,
-    defaultChecked: Array,
-    props: Object,
+    format: {
+      type: Object,
+      default: undefined,
+    },
+    filterMethod: {
+      type: Function,
+      default: undefined,
+    },
+    defaultChecked: {
+      type: Array,
+      default: () => [], // 使用箭头函数返回一个新的空数组
+    },
+    props: {
+      type: Object,
+      default() {
+        return {
+          label: 'label',
+          key: 'key',
+          disabled: 'disabled',
+        };
+      },
+    },
   },
 
   data() {
@@ -148,7 +175,6 @@ export default {
         return label.toLowerCase().indexOf(this.query.toLowerCase()) > -1;
       });
       this.setDataForShow(arr.slice(0, this.pageSize));
-
       // console.log('filteredData耗时', new Date().getTime() - start);
       return arr;
     },
@@ -264,6 +290,10 @@ export default {
   },
 
   methods: {
+    /**
+     * 這裡是 checkbox 被按下後 會觸發的事件
+     * 要確認是否全部的checkbox 全被選擇
+     */
     updateAllChecked() {
       // const start = new Date().getTime();
       const checkObj = {};
@@ -277,18 +307,22 @@ export default {
       // 上面被注释的源码是最耗时的，所有一直看耗时就可以了
       // console.log('updateAllCheckedEnd', new Date().getTime() - start);
     },
-
+    /**
+     * 全選事件
+     * @param {Boolean} value
+     */
     handleAllCheckedChange(value) {
-      // debugger
       // start = new Date().getTime();
       this.checked = value
         ? this.checkableData.map((item) => item[this.keyProp])
         : [];
       // console.log('handleAllCheckedChange耗时', new Date().getTime() - start);
     },
-
+    /** 計算可視範圍
+     * 效能优化关键 計算可視範圍
+     */
     loadMore() {
-      // console.log('1111');
+      // console.log('loadMore');
       this.pageNumber++;
       this.dataForShow = this.filteredData.slice(0, this.pageSize * this.pageNumber);
     },
