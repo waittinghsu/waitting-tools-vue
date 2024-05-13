@@ -347,10 +347,34 @@ export default {
 </script>
 <style lang="scss" scoped>
   ::v-deep.sys-table {
-    ::-webkit-scrollbar-thumb {
-      border-radius: 5px;
-      background-color: rgba(144, 147, 153, 0.5);
+    .el-table__body-wrapper {
+      /* width 整個scrollbar 條的背景 這裡通常調整寬高度而已*/
+      &::-webkit-scrollbar {
+        width: 12px;
+        height: 8px;
+        border-radius: 12px;
+      }
+      /* Track */
+      &::-webkit-scrollbar-track {
+        background-color: #FAFAFA;
+        box-shadow: inset 1px 1px 5px #ECEFF1;
+        border-radius: 12px;
+      }
+      /* Track on hover */
+      &::-webkit-scrollbar-track:hover {
+        background-color: #EBFBFA;
+      }
+      /* Handle */
+      &::-webkit-scrollbar-thumb {
+        background: #BDBDBD;
+        border-radius: 12px;
+      }
+      /* Handle on hover */
+      &::-webkit-scrollbar-thumb:hover {
+        background: #B2EBF2;
+      }
     }
+
     .el-table__expanded-cell {
       background: #ebfbfa;
     }
