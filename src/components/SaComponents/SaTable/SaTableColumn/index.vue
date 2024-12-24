@@ -5,6 +5,9 @@ export default {
     pageProvideComponent: {
       default: {},
     },
+    parentPageChoices: {
+      default: {},
+    },
   },
   props: {
     attrs: {
